@@ -1,43 +1,67 @@
 const $button_2 = $("#deck_of_cards_btn")
 
 
-$button_2.click(() => {
+$button_2.click( async () => {
 
     let cards = $('.cards')
-
-    if(cards.length > 11 || cards.length == 0){
+    if(cards.length > 51 || cards.length == 0){
         cards.remove()
-        getIdDeck();
+
+        if(!localStorage.getItem("deck_id")){
+            let result = await getIdDeck();
+            localStorage.setItem("deck_id", result.deck_id)
+        }else{
+            await shuffleDeck ()
+        }
+        await getCrad()
     }else{
-        getCrad()
+        await getCrad()
     }
     
 });
 
+const getIdDeck = async () =>{    
 
+    try{
 
-const getIdDeck = () =>{    
-        
-        axios.get(`https://deckofcardsapi.com/api/deck/new/shuffle/`)
-                .then(val => { localStorage.setItem("deck_id", val["data"]["deck_id"]) })
-                .then( getCrad() )
-                .catch(err => { console.log(err) })
+        let {data: deck_card_json} =  await axios.get(`https://deckofcardsapi.com/api/deck/new/shuffle/`)
 
+        return deck_card_json
+
+    }catch(err){
+
+        alert(`getIdDeck - ${err}`)
+
+    }
 }
 
 
-const getCrad = () => {
+const shuffleDeck = async () =>{
+    try{
 
-    axios.get(`https://deckofcardsapi.com/api/deck/${localStorage.getItem("deck_id")}/draw/?count=1`)
-                .then(val => {
+        await axios.get(`http://deckofcardsapi.com/api/deck/${localStorage.getItem("deck_id")}/shuffle/`)
 
-                    let card = val["data"]["cards"][0]["image"]
+    }catch(err){
 
-                    let img = `<img src="${card}" class="cards mt-2">`
+        alert(`shuffleDeck - ${err}`)
 
-                    $("#deck_of_cards").append(img)
+    }
+}
+
+const getCrad = async () => {
+
+    try{
+        let {data: card_json}  = await axios.get(`https://deckofcardsapi.com/api/deck/${localStorage.getItem("deck_id")}/draw/?count=1`)
+                
+        let img = `<img src="${card_json.cards[0].image}" class="position-relative cards mt-2">`
+
+        $("#deck_of_cards").append(img)
+
+    }catch(err){
+
+        alert(`getCard - ${err}`)
+
+    }
             
-                })
-                .catch(err => { console.log(err) })
 
 }

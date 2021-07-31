@@ -1,7 +1,6 @@
 const $button_1 = $('#submit_number')
 
 
-
 $button_1.click(() =>{
     let num = $('#user_number').val();
     getFacts(num);
@@ -9,24 +8,39 @@ $button_1.click(() =>{
 });
 
 
-const getFacts = (num) => {
+const getFacts = async (num) => {
 
     $(".data_num").remove();
 
     let factsNum = [];
-    
+
     for(let i = 0; i < 4; i++){
-        factsNum.push(axios.get(`http://numbersapi.com/${num}/math?json`))
+        factsNum.push(axios.get(`http://numbersapi.com/${num}?json`))
     }
 
-    Promise.all(factsNum)
-        .then(returnValues => (
-            returnValues.forEach(val => {
-                let div = `<div class='data_num container mt-2 text-center'>${val["data"]["text"]}</div>`;
+    let result = false
+
+    try{
+        result = await Promise.all(factsNum)
+    }catch(err){
+        console.log(err)
+    }
+
+    if(result){
+        result.map(val => {
+
+            let keys_arr = Object.keys(val.data)
+
+            keys_arr.map(key => {
+
+                let div = `<div class='data_num container mt-2 text-left'>${val.data[key]}</div>`;
                 $("#num_facts").append(div)
+                    
             })
-        ))
-        .catch(err => console.log(err))
+                    
+        })
+    }
+        
 
 }
 
